@@ -1,0 +1,55 @@
+#include <AccelStepper.h>
+
+// Pines del ESP32 conectados a IN1-IN4 del ULN2003
+#define IN1 25
+#define IN2 26
+#define IN3 27
+#define IN4 14
+
+// Definimos el tipo de motor: 4 pines, secuencia de pasos personalizada
+AccelStepper stepper(AccelStepper::HALF4WIRE, IN1, IN3, IN2, IN4);
+
+// Velocidad base
+int maxSpeed = 500; // pasos por segundo
+int direction = 1;  // 1: derecha, -1: izquierda
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println("Send 'r' (right), 'l' (left), 'u' (faster), 'd' (slower)");
+
+  stepper.setMaxSpeed(maxSpeed);
+  stepper.setAcceleration(300); // aceleración suave
+}
+
+void loop() {
+  // Ejecuta movimiento continuo en dirección
+  stepper.setSpeed(direction * maxSpeed);
+  stepper.runSpeed();
+
+  // Comandos por consola
+  if (Serial.available()) {
+    char c = Serial.read();
+
+    if (c == 'r') {
+      direction = 1;
+      Serial.println("Direction: right");
+    }
+    else if (c == 'l') {
+      direction = -1;
+      Serial.println("Direction: left");
+    }
+    else if (c == 'u') {
+      maxSpeed += 50;
+      if (maxSpeed > 1200) maxSpeed = 1200;
+      Serial.print("Speed up: "); Serial.println(maxSpeed);
+      stepper.setMaxSpeed(maxSpeed);
+    }
+    else if (c == 'd') {
+      maxSpeed -= 50;
+      if (maxSpeed < 50) maxSpeed = 50;
+      Serial.print("Speed down: "); Serial.println(maxSpeed);
+      stepper.setMaxSpeed(maxSpeed);
+    }
+  }
+}
+
